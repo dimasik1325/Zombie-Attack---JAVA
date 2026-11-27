@@ -24,6 +24,7 @@ class WeaponTest {
             p.consume();
         }
         assertEquals(0, p.getAmmoInMag());
+        p.update(0.3f); // выдержать кулдаун после последнего выстрела
         assertTrue(p.isEmpty());
         assertFalse(p.canFire());
     }

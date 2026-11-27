@@ -360,10 +360,10 @@ public final class SoundFactory {
     public static byte[] wav16(float[] samples, int rate) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream(44 + samples.length * 2);
         int dataLen = samples.length * 2;
-        leInt(baos, 0x52494646);            // "RIFF"
+        leInt(baos, 0x46464952);            // "RIFF" (little-endian байты: 52 49 46 46)
         leInt(baos, 36 + dataLen);          // размер файла - 8
-        leInt(baos, 0x57415645);            // "WAVE"
-        leInt(baos, 0x666D7420);            // "fmt "
+        leInt(baos, 0x45564157);            // "WAVE" (57 41 56 45)
+        leInt(baos, 0x20746D66);            // "fmt " (66 6D 74 20)
         leInt(baos, 16);                    // размер fmt
         leShort(baos, 1);                   // PCM
         leShort(baos, 1);                   // каналы: моно
@@ -371,7 +371,7 @@ public final class SoundFactory {
         leInt(baos, rate * 2);              // байт/сек
         leShort(baos, 2);                   // блок
         leShort(baos, 16);                  // бит
-        leInt(baos, 0x64617461);            // "data"
+        leInt(baos, 0x61746164);            // "data" (64 61 74 61)
         leInt(baos, dataLen);
         for (float s : samples) {
             int v = (int) (s * 32767);

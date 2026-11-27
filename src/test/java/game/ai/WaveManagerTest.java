@@ -34,8 +34,14 @@ class WaveManagerTest {
     void difficultyGrowsWithWave() {
         WaveManager waves = new WaveManager((p, hp, speed, dmg) -> {
         }, away -> new Vector3f(20, 0, 20));
+
+        // стартуем волну 1 (межволновая пауза 3 с)
+        for (int i = 0; i < 15; i++) {
+            waves.update(0.25f, new Vector3f());
+        }
+        assertEquals(1, waves.getWave());
         assertEquals(60f, waves.hpForWave(), 1e-3);
-        assertEquals(8, waves.damageForWave());
+        assertEquals(9, waves.damageForWave());
 
         // проматываем несколько волн: заспавненные мгновенно «убиваются»
         for (int i = 0; i < 150; i++) {
