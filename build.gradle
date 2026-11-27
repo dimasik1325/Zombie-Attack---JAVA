@@ -23,7 +23,8 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 repositories {
-    mavenCentral()
+    mavenCentral()                                     // основной (repo.maven.apache.org)
+    maven { url = 'https://repo1.maven.org/maven2/' }  // зеркало — подстраховка от сетевых сбоев CI
 }
 
 dependencies {
