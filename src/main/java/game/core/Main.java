@@ -40,7 +40,14 @@ public final class Main {
             // Сглаживание отключено: мультисемплинг-FBO на части Windows-драйверов
             // (старые Intel HD) приводит к падению на первом кадре.
             settings.setSamples(0);
-            settings.setAudioRenderer(AppSettings.LWJGL_OPENAL);
+            // Аудио: по умолчанию OpenAL. Ключ -Dza.audio=false — для машин БЕЗ
+            // звукового устройства (иначе jME падает NPE при инициализации OpenAL,
+            // т.к. alcOpenDevice возвращает null). Игра корректно работает без звука.
+            if (Boolean.parseBoolean(System.getProperty("za.audio", "true"))) {
+                settings.setAudioRenderer(AppSettings.LWJGL_OPENAL);
+            } else {
+                settings.setAudioRenderer(null); // тихий режим
+            }
             settings.setIcons(IconFactory.createIcons()); // процедурная иконка окна
 
             LOG.info("Java " + System.getProperty("java.version")

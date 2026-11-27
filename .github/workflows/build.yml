@@ -72,7 +72,9 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          timeout 25 xvfb-run -a -s "-screen 0 1280x720x24" \
+          # za.audio=false: на runner'е нет звукового устройства —
+          # OpenAL-инициализация падает NPE внутри jME (alcOpenDevice -> null)
+          JAVA_OPTS="-Dza.audio=false" timeout 25 xvfb-run -a -s "-screen 0 1280x720x24" \
             build/install/zombie-attack/bin/zombie-attack > app-smoke.txt 2>&1
           CODE=$?
           echo "Код выхода: $CODE (124 = игра работала и была остановлена по таймауту — успех)"
