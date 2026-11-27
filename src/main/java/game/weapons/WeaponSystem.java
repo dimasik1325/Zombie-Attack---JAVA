@@ -3,6 +3,8 @@ package game.weapons;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.light.PointLight;
+import com.jme3.material.Material;
+import com.jme3.scene.Geometry;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
@@ -98,7 +100,7 @@ public class WeaponSystem {
         Node pistolMuzzle = new Node("pistol_muzzle");
         pistolMuzzle.setLocalTranslation(0f, 0.03f, -0.13f);
         pistol.attachChild(pistolMuzzle);
-        pistol.addUserData("muzzle", pistolMuzzle);
+        pistol.setUserData("muzzle", pistolMuzzle);
         models.add(pistol);
 
         // --- дробовик ---
@@ -125,7 +127,7 @@ public class WeaponSystem {
         Node shotgunMuzzle = new Node("shotgun_muzzle");
         shotgunMuzzle.setLocalTranslation(0f, 0.02f, -0.42f);
         shotgun.attachChild(shotgunMuzzle);
-        shotgun.addUserData("muzzle", shotgunMuzzle);
+        shotgun.setUserData("muzzle", shotgunMuzzle);
         models.add(shotgun);
 
         // оба держим в одном пивоте со смещением от камеры

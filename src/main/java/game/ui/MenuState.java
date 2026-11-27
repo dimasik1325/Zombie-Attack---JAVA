@@ -130,10 +130,10 @@ public class MenuState extends AbstractAppStateBase implements ActionListener, A
         im.addMapping("menu_click", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         im.addMapping("menu_start", new KeyTrigger(KeyInput.KEY_RETURN));
         im.addMapping("menu_exit", new KeyTrigger(KeyInput.KEY_ESCAPE));
-        im.addMapping("menu_move", new com.jme3.input.controls.MouseAxisTrigger(MouseInput.MOUSE_X, true),
-                new com.jme3.input.controls.MouseAxisTrigger(MouseInput.MOUSE_X, false),
-                new com.jme3.input.controls.MouseAxisTrigger(MouseInput.MOUSE_Y, true),
-                new com.jme3.input.controls.MouseAxisTrigger(MouseInput.MOUSE_Y, false));
+        im.addMapping("menu_move", new com.jme3.input.controls.MouseAxisTrigger(MouseInput.AXIS_X, true),
+                new com.jme3.input.controls.MouseAxisTrigger(MouseInput.AXIS_X, false),
+                new com.jme3.input.controls.MouseAxisTrigger(MouseInput.AXIS_Y, true),
+                new com.jme3.input.controls.MouseAxisTrigger(MouseInput.AXIS_Y, false));
         // this реализует и ActionListener, и AnalogListener
         im.addListener(this, "menu_click", "menu_start", "menu_exit", "menu_move");
         im.setCursorVisible(true);

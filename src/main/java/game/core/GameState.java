@@ -219,10 +219,10 @@ public class GameState extends AbstractAppStateBase implements ActionListener, A
         im.addMapping("za_w2", new KeyTrigger(KeyInput.KEY_2));
         im.addMapping("za_pause", new KeyTrigger(KeyInput.KEY_ESCAPE));
         im.addMapping("za_quit", new KeyTrigger(KeyInput.KEY_Q));
-        im.addMapping("za_lookL", new MouseAxisTrigger(MouseInput.MOUSE_X, true));
-        im.addMapping("za_lookR", new MouseAxisTrigger(MouseInput.MOUSE_X, false));
-        im.addMapping("za_lookU", new MouseAxisTrigger(MouseInput.MOUSE_Y, true));
-        im.addMapping("za_lookD", new MouseAxisTrigger(MouseInput.MOUSE_Y, false));
+        im.addMapping("za_lookL", new MouseAxisTrigger(MouseInput.AXIS_X, true));
+        im.addMapping("za_lookR", new MouseAxisTrigger(MouseInput.AXIS_X, false));
+        im.addMapping("za_lookU", new MouseAxisTrigger(MouseInput.AXIS_Y, true));
+        im.addMapping("za_lookD", new MouseAxisTrigger(MouseInput.AXIS_Y, false));
         im.addListener(this,
                 "za_fwd", "za_back", "za_left", "za_right", "za_run", "za_jump",
                 "za_fire", "za_reload", "za_pickup", "za_w1", "za_w2", "za_pause", "za_quit",
