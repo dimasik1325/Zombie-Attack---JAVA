@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -34,14 +35,31 @@ public class AssetLib {
         this.assetManager = assetManager;
         DataDirs.ensureAll();
 
-        // 1. Процедурные звуки: WAV в ~/.zombieattack/sounds + локатор каталога
-        int made = SoundFactory.generateMissing(DataDirs.soundsDir());
-        LOG.info("Процедурные звуки: создано " + made + " новых файлов");
-        assetManager.registerLocator(DataDirs.soundsDir().getAbsolutePath(), FileLocator.class);
+        // 1. Процедурные звуки: WAV в ~/.zombieattack/sounds + локатор каталога.
+        //    Любая ошибка (антивирус, права, диск) не должна ронять игру — она останется без звука.
+        try {
+            int made = SoundFactory.generateMissing(DataDirs.soundsDir());
+            LOG.info("Процедурные звуки: создано " + made + " новых файлов");
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Не удалось сгенерировать звуки — игра без звука", e);
+        }
+        try {
+            assetManager.registerLocator(DataDirs.soundsDir().getAbsolutePath(), FileLocator.class);
+        } catch (Exception e) {
+            LOG.warning("Локатор звуков не зарегистрирован: " + e.getMessage());
+        }
 
         // 2. Локатор каталога шрифта + страховка абсолютных путей
-        assetManager.registerLocator(DataDirs.fontDir().getAbsolutePath(), FileLocator.class);
-        assetManager.registerLocator("/", RuntimeLocator.class);
+        try {
+            assetManager.registerLocator(DataDirs.fontDir().getAbsolutePath(), FileLocator.class);
+        } catch (Exception e) {
+            LOG.warning("Локатор шрифтов не зарегистрирован: " + e.getMessage());
+        }
+        try {
+            assetManager.registerLocator("/", RuntimeLocator.class);
+        } catch (Exception e) {
+            LOG.warning("Runtime-локатор не зарегистрирован: " + e.getMessage());
+        }
 
         // 3. Процедурный шрифт с кириллицей; при неудаче — Default.fnt + английский текст
         try {

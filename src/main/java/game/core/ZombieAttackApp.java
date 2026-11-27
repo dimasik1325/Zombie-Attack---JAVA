@@ -6,9 +6,12 @@ import com.jme3.app.StatsAppState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.system.AppSettings;
 import game.assets.AssetLib;
+import game.assets.DataDirs;
 import game.ui.GameOverState;
 import game.ui.MenuState;
 
+import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -86,5 +89,38 @@ public class ZombieAttackApp extends SimpleApplication {
 
     public AssetLib getAssets() {
         return assetLib;
+    }
+
+    // ------------------------------------------------------------
+    //  Обработка ошибок: вместо молчаливого закрытия — окно с текстом
+    // ------------------------------------------------------------
+
+    @Override
+    public void handleError(String errMsg, Throwable t) {
+        LOG.log(Level.SEVERE, "Ошибка приложения: " + errMsg, t);
+        showErrorWindow("Ошибка приложения", errMsg, t);
+    }
+
+    /** Модальное окно с ошибкой (AWT/Swing в отдельном потоке). */
+    static void showErrorWindow(String title, String message, Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(message == null || message.isEmpty() ? "Произошла ошибка" : message);
+        if (t != null) {
+            sb.append("\n\n").append(t.getClass().getName())
+              .append(": ").append(t.getMessage());
+            StackTraceElement[] st = t.getStackTrace();
+            for (int i = 0; i < Math.min(10, st.length); i++) {
+                sb.append("\n  at ").append(st[i]);
+            }
+        }
+        File logDir = DataDirs.logsDir();
+        sb.append("\n\nПолный лог: ").append(logDir.getAbsolutePath());
+        final String text = sb.toString();
+        try {
+            javax.swing.SwingUtilities.invokeLater(() -> javax.swing.JOptionPane.showMessageDialog(
+                    null, text, title, javax.swing.JOptionPane.ERROR_MESSAGE));
+        } catch (Throwable ignored) {
+            // графический интерфейс недоступен — остаётся лог
+        }
     }
 }

@@ -24,9 +24,13 @@ public final class Main {
     public static void main(String[] args) {
         configureLogging();
 
-        // Любое необработанное исключение попадает в лог
-        Thread.setDefaultUncaughtExceptionHandler((t, e) ->
-                LOG.log(Level.SEVERE, "Необработанное исключение в потоке " + t.getName(), e));
+        // Любое необработанное исключение — в лог И на экран (окно с ошибкой),
+        // чтобы игрок видел причину, а не молчаливое закрытие приложения
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            LOG.log(Level.SEVERE, "Необработанное исключение в потоке " + t.getName(), e);
+            ZombieAttackApp.showErrorWindow("Ошибка приложения",
+                    "Игра остановилась из-за ошибки. Подробности ниже и в лог-файле.", e);
+        });
 
         try {
             AppSettings settings = new AppSettings(true);
