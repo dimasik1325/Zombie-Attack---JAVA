@@ -6,6 +6,8 @@
 #     ZombieAttack.exe (app-image с встроенной JRE) и кладёт в dist/
 #  3. Артефакт "ZombieAttack-windows-exe" в разделе Actions
 #     и (при наличии прав) релиз v1.0.0 с zip-архивом игры.
+#  Диагностика: при падении сборки лог публикуется комментарием
+#  к коммиту (удобно смотреть через API, когда логи Actions недоступны).
 name: CI Build
 
 on:
@@ -14,7 +16,6 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 jobs:
   test:
@@ -28,7 +29,23 @@ jobs:
           java-version: '17'
           cache: gradle
       - name: Gradle build + test
-        run: ./gradlew clean build --no-daemon --console=plain
+        id: build
+        continue-on-error: true
+        run: ./gradlew clean build --no-daemon --console=plain 2>&1 | tee build-log.txt
+      - name: Лог сборки — комментарием к коммиту
+        if: steps.build.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAIL=$(tail -c 50000 build-log.txt | sed 's/```/~~~ /g')
+          gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
+            -f body="**CI: Gradle build провалился** (Linux job). Хвост лога:
+          \`\`\`
+          $TAIL
+          \`\`\`" >/dev/null
+      - name: Итоговый статус сборки
+        if: steps.build.outcome == 'failure'
+        run: exit 1
 
   exe:
     name: Нативный .exe (Windows)
@@ -42,7 +59,25 @@ jobs:
           java-version: '17'
           cache: gradle
       - name: jpackage -> dist/ZombieAttack/ZombieAttack.exe
-        run: ./gradlew packageDist --no-daemon --console=plain
+        id: pkg
+        continue-on-error: true
+        shell: bash
+        run: ./gradlew packageDist --no-daemon --console=plain 2>&1 | tee pkg-log.txt
+      - name: Лог пакета — комментарием к коммиту
+        if: steps.pkg.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAIL=$(tail -c 50000 pkg-log.txt | sed 's/```/~~~ /g')
+          gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
+            -f body="**CI: packageDist провалился** (Windows job). Хвост лога:
+          \`\`\`
+          $TAIL
+          \`\`\`" >/dev/null
+      - name: Итоговый статус пакета
+        if: steps.pkg.outcome == 'failure'
+        run: exit 1
       - name: Архивировать результат
         run: |
           Compress-Archive -Path dist/ZombieAttack -DestinationPath ZombieAttack-windows.zip -Force
