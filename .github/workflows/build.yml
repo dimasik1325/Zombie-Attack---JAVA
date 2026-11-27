@@ -84,7 +84,8 @@ jobs:
         if: always()
         run: |
           # безвредный шум headless-среды: нет аудио-устройства/AL-библиотек
-          BAD=$(grep -nE "SEVERE|Exception" app-smoke.txt | grep -viE "openal|audio|AL lib|sound|audioDevice")
+          # (|| true: отсутствие совпадений у grep — это успех, а не ошибка)
+          BAD=$( (grep -nE "SEVERE|Exception" app-smoke.txt || true) | (grep -viE "openal|audio|AL lib|sound|audioDevice" || true) )
           if [ -n "$BAD" ]; then
             echo "=== Обнаружены ошибки в логе игры ==="
             echo "$BAD" | head -20
@@ -106,7 +107,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          BAD=$(grep -n -A18 -B2 -E "SEVERE|Exception" app-smoke.txt | grep -viE "openal|audio|AL lib|sound|audioDevice" | head -60)
+          BAD=$( (grep -n -A18 -B2 -E "SEVERE|Exception" app-smoke.txt || true) | (grep -viE "openal|audio|AL lib|sound|audioDevice" || true) | head -60)
           gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
             -f body="**CI: ошибки в логе игры** (smoke, xvfb):
           \`\`\`
