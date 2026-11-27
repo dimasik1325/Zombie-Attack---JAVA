@@ -37,9 +37,15 @@ public final class Main {
             settings.setTitle("ZOMBIE ATTACK");
             settings.setResolution(1280, 720);
             settings.setVSync(true);
-            settings.setSamples(4);
+            // Сглаживание отключено: мультисемплинг-FBO на части Windows-драйверов
+            // (старые Intel HD) приводит к падению на первом кадре.
+            settings.setSamples(0);
             settings.setAudioRenderer(AppSettings.LWJGL_OPENAL);
             settings.setIcons(IconFactory.createIcons()); // процедурная иконка окна
+
+            LOG.info("Java " + System.getProperty("java.version")
+                    + " | " + System.getProperty("os.name") + " " + System.getProperty("os.version")
+                    + " | " + System.getProperty("os.arch"));
 
             ZombieAttackApp app = new ZombieAttackApp();
             app.setSettings(settings);

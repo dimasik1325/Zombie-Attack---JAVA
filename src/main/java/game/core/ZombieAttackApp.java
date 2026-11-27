@@ -33,6 +33,17 @@ public class ZombieAttackApp extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        try {
+            initGame();
+            showMenu();
+        } catch (Throwable t) {
+            // Любая ошибка инициализации — не молчаливое закрытие, а окно с текстом
+            LOG.log(Level.SEVERE, "Ошибка инициализации игры", t);
+            handleError("Ошибка при запуске игры", t);
+        }
+    }
+
+    private void initGame() {
         // Отключаем встроенный Esc-выход и статистику — управляем всем сами
         inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
         setDisplayFps(false);
@@ -48,8 +59,6 @@ public class ZombieAttackApp extends SimpleApplication {
         inputManager.setCursorVisible(true);
         LOG.info("ZOMBIE ATTACK запущена. Разрешение: "
                 + settings.getWidth() + "x" + settings.getHeight());
-
-        showMenu();
     }
 
     // ------------------------------------------------------------

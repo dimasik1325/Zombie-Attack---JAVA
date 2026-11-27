@@ -114,15 +114,16 @@ public class MenuState extends AbstractAppStateBase implements ActionListener, A
             b.attachTo(gui, h);
         }
 
-        // эмбиент
-        ambient = new AudioNode(am, "ambient_menu.wav");
-        ambient.setLooping(true);
-        ambient.setVolume(0.4f);
-        gui.attachChild(ambient); // не-позиционный, но узлу нужно быть в графе
+        // эмбиент (целиком в try: отсутствие аудио не должно ронять меню)
         try {
+            ambient = new AudioNode(am, "ambient_menu.wav");
+            ambient.setLooping(true);
+            ambient.setVolume(0.4f);
+            gui.attachChild(ambient); // не-позиционный, но узлу нужно быть в графе
             ambient.play();
         } catch (Exception e) {
             LOG.warning("Аудио недоступно: " + e.getMessage());
+            ambient = null;
         }
 
         // ввод

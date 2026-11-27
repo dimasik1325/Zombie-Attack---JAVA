@@ -108,11 +108,23 @@ public class GameState extends AbstractAppStateBase implements ActionListener, A
         hud = new HUD(app.getGuiNode(), assets.getHudFont(), texts, assets.getAssetManager(),
                 app.getCamera(), assets.texture("vignette"));
 
-        // туман + лёгкий bloom для атмосферы
+        // туман + лёгкий bloom для атмосферы.
+        // Bloom требует float-таргетов (RGB111110F) — на части Windows-драйверов
+        // (Intel HD) это падает на первом кадре, поэтому включаем только при поддержке.
         fpp = new FilterPostProcessor(assets.getAssetManager());
         fpp.addFilter(new FogFilter(new ColorRGBA(0.05f, 0.06f, 0.09f, 1f), 1.0f, 62f));
-        fpp.addFilter(new BloomFilter());
-        app.getViewPort().addProcessor(fpp);
+        try {
+            boolean packed = app.getRenderer().getCaps().contains(com.jme3.renderer.Caps.PackedFloatTexture);
+            boolean floats = app.getRenderer().getCaps().contains(com.jme3.renderer.Caps.FloatTexture);
+            if (packed || floats) {
+                fpp.addFilter(new BloomFilter());
+            } else {
+                LOG.info("Bloom отключён: GPU не поддерживает float-таргеты");
+            }
+            app.getViewPort().addProcessor(fpp);
+        } catch (Exception e) {
+            LOG.warning("Пост-эффекты отключены: " + e.getMessage());
+        }
 
         // звуки
         buildSounds(assets);
@@ -166,13 +178,11 @@ public class GameState extends AbstractAppStateBase implements ActionListener, A
     private ParticleEmitter bloodFx;
     private ParticleEmitter impactFx;
 
-    /** Предзагрузка не-позиционных звуков (щелчки выстрелов и т.п.). */
+    /** Предзагрузка не-позиционных звуков. Любая ошибка = игра без звука, не крах. */
     private void buildSounds(AssetLib assets) {
         for (int i = 0; i < shotSounds.length; i++) {
-            shotSounds[i] = new AudioNode(assets.getAssetManager(),
-                    (i == 0 ? "shot_pistol.wav" : "shot_shotgun.wav"));
-            shotSounds[i].setVolume(i == 0 ? 0.8f : 1f);
-            world.attachChild(shotSounds[i]);
+            shotSounds[i] = makeSound(i == 0 ? "shot_pistol.wav" : "shot_shotgun.wav",
+                    i == 0 ? 0.8f : 1f);
         }
         sndReload = makeSound("reload.wav", 0.8f);
         sndEmpty = makeSound("empty.wav", 0.7f);
@@ -183,11 +193,17 @@ public class GameState extends AbstractAppStateBase implements ActionListener, A
         sndWaveCleared = makeSound("wave_cleared.wav", 0.8f);
     }
 
+    /** Безопасное создание звука: возвращает null при любой ошибке. */
     private AudioNode makeSound(String file, float volume) {
-        AudioNode n = new AudioNode(app.getAssets().getAssetManager(), file);
-        n.setVolume(volume);
-        world.attachChild(n);
-        return n;
+        try {
+            AudioNode n = new AudioNode(app.getAssets().getAssetManager(), file);
+            n.setVolume(volume);
+            world.attachChild(n);
+            return n;
+        } catch (Exception e) {
+            LOG.warning("Звук " + file + " недоступен: " + e.getMessage());
+            return null;
+        }
     }
 
     private AudioNode sndReload, sndEmpty, sndSwitch, sndHurt, sndPickup, sndWaveStart, sndWaveCleared;
@@ -196,8 +212,10 @@ public class GameState extends AbstractAppStateBase implements ActionListener, A
     /** Эмбиент арены — тихий низкий гул, лупится. */
     private void playAmbient() {
         ambientGame = makeSound("ambient_game.wav", 0.35f);
-        ambientGame.setLooping(true);
-        playSafe(ambientGame);
+        if (ambientGame != null) {
+            ambientGame.setLooping(true);
+            playSafe(ambientGame);
+        }
     }
 
     // ============================================================
