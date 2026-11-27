@@ -1,0 +1,234 @@
+// ============================================================
+//  ZOMBIE ATTACK — система сборки
+//  Java 17 + jMonkeyEngine 3.6.1 + jpackage (нативный .exe)
+// ============================================================
+import java.awt.Color
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.zombieattack'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'           // важно: русские комментарии в исходниках
+    options.release = 17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // jMonkeyEngine 3.6.1 — ядро, десктоп-бэкенд, LWJGL 3 (рендер/ввод/звук) и постэффекты (туман, bloom)
+    implementation 'org.jmonkeyengine:jme3-core:3.6.1'
+    implementation 'org.jmonkeyengine:jme3-desktop:3.6.1'
+    implementation 'org.jmonkeyengine:jme3-lwjgl3:3.6.1'
+    implementation 'org.jmonkeyengine:jme3-effects:3.6.1'
+
+    // Тесты (headless: текстуры, звук, физика, волны, оружие)
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.1'
+}
+
+application {
+    mainClass = 'game.core.Main'
+    applicationDefaultJvmArgs = ['-Xms256m', '-Xmx1G', '-Dfile.encoding=UTF-8']
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}
+
+// ============================================================
+//  Генерация иконки приложения (build/icon.ico) — процедурная,
+//  без бинарных файлов в репозитории: PNG-слой внутри ICO.
+// ============================================================
+tasks.register('generateIcon') {
+    group = 'build'
+    description = 'Генерирует процедурную иконку приложения (ICO) из кода.'
+    outputs.file(layout.buildDirectory.file('icon.ico'))
+
+    doLast {
+        def out = layout.buildDirectory.file('icon.ico').get().asFile
+        out.parentFile.mkdirs()
+
+        def drawFace = { int s ->
+            def img = new java.awt.image.BufferedImage(s, s, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+            def g = img.createGraphics()
+            g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+            def f = (float) s
+            // фон: тёмный градиент
+            g.setPaint(new java.awt.GradientPaint(0f, 0f, new Color(16, 18, 24), 0f, f, new Color(6, 7, 10)))
+            g.fillRect(0, 0, s, s)
+            // зеленоватое свечение
+            g.setPaint(new java.awt.RadialGradientPaint(
+                    new java.awt.geom.Point2D.Float(f * 0.5f, f * 0.52f), f * 0.55f,
+                    [0.0f, 1.0f] as float[],
+                    [new Color(44, 84, 40), new Color(10, 14, 10, 0)] as Color[]))
+            g.fillRect(0, 0, s, s)
+            // голова зомби
+            g.setColor(new Color(58, 110, 52))
+            g.fillRoundRect((s * 0.18) as int, (s * 0.16) as int, (s * 0.64) as int, (s * 0.68) as int, (s * 0.22) as int, (s * 0.22) as int)
+            // тёмная «кожа»-тени
+            g.setColor(new Color(38, 78, 36))
+            g.fillOval((s * 0.24) as int, (s * 0.62) as int, (s * 0.52) as int, (s * 0.20) as int)
+            // глаза (красное свечение)
+            g.setColor(new Color(190, 28, 20))
+            g.fillOval((s * 0.28) as int, (s * 0.34) as int, (s * 0.16) as int, (s * 0.13) as int)
+            g.fillOval((s * 0.56) as int, (s * 0.34) as int, (s * 0.16) as int, (s * 0.13) as int)
+            g.setColor(new Color(255, 96, 60))
+            g.fillOval((s * 0.31) as int, (s * 0.365) as int, (s * 0.07) as int, (s * 0.05) as int)
+            g.fillOval((s * 0.59) as int, (s * 0.365) as int, (s * 0.07) as int, (s * 0.05) as int)
+            // шрам на лбу
+            g.setColor(new Color(30, 50, 30))
+            g.drawLine((s * 0.5) as int, (s * 0.18) as int, (s * 0.56) as int, (s * 0.30) as int)
+            // зубастый рот
+            g.setColor(new Color(20, 26, 20))
+            int mx = (s * 0.30) as int, my = (s * 0.62) as int, mw = (s * 0.40) as int, mh = (s * 0.14) as int
+            g.fillRect(mx, my, mw, mh)
+            g.setColor(new Color(210, 210, 190))
+            def teeth = 5
+            for (int i = 0; i < teeth; i++) {
+                int tx = mx + (int) (i * mw / (float) teeth) + 1
+                int tw = (int) (mw / (float) teeth) - 2
+                g.fillPolygon([tx, tx + tw, tx + tw / 2] as int[], [my, my, my + mh / 2] as int[], 3)
+            }
+            g.dispose()
+            return img
+        }
+
+        def sizes = [256, 128, 64, 48, 32, 16]
+        def pngs = sizes.collect { sz ->
+            def src = drawFace(sz)
+            def baos = new ByteArrayOutputStream()
+            javax.imageio.ImageIO.write(src, 'png', baos)
+            baos.toByteArray()
+        }
+
+        // Сборка ICO (little-endian) с PNG-слоями
+        def baos = new ByteArrayOutputStream()
+        def leShort = { v -> [(v & 0xFF), ((v >> 8) & 0xFF)].each { baos.write(it) } }
+        def leInt = { v -> 4.times { i -> baos.write((v >> (8 * i)) & 0xFF) } }
+        leShort(0); leShort(1); leShort(pngs.size())          // ICONDIR
+        long offset = 6 + 16L * pngs.size()
+        sizes.eachWithIndex { sz, i ->
+            baos.write(sz >= 256 ? 0 : sz)                     // ширина (0 = 256)
+            baos.write(sz >= 256 ? 0 : sz)                     // высота
+            baos.write(0)                                      // палитра
+            baos.write(0)                                      // резерв
+            leShort(1)                                         // planes
+            leShort(32)                                        // bitcount
+            leInt(pngs[i].length)                              // размер слоя
+            leInt((int) offset)                                // смещение слоя
+            offset += pngs[i].length
+        }
+        pngs.each { baos.write(it) }
+        out.bytes = baos.toByteArray()
+        println "Иконка сгенерирована: ${out} (${out.length()} байт)"
+    }
+}
+
+// ============================================================
+//  packageExe — jpackage (app-image): нативный лаунчер .exe
+//  с собственным JRE внутри. Не требует WiX.
+// ============================================================
+tasks.register('packageExe', Exec) {
+    group = 'build'
+    description = 'Собирает нативное приложение (ZombieAttack.exe + runtime) через jpackage.'
+    dependsOn 'installDist', 'generateIcon'
+
+    doFirst {
+        def os = org.gradle.internal.os.OperatingSystem.current()
+        // ищем jpackage: сначала JAVA_HOME, потом PATH
+        def jpackageExe = 'jpackage'
+        def jh = System.getenv('JAVA_HOME')
+        if (jh != null) {
+            def cand = new File(jh, os.isWindows() ? 'bin/jpackage.exe' : 'bin/jpackage')
+            if (cand.exists()) jpackageExe = cand.absolutePath
+        }
+
+        def libDir = layout.buildDirectory.dir("install/${rootProject.name}/lib").get().asFile
+        def mainJar = libDir.listFiles()?.find { it.name.startsWith(rootProject.name) && it.name.endsWith('.jar') }
+        if (mainJar == null) throw new GradleException("Главный jar не найден в ${libDir} — сначала выполните installDist")
+
+        def args = [
+                jpackageExe,
+                '--type', 'app-image',
+                '--input', libDir.absolutePath,
+                '--main-jar', mainJar.name,
+                '--name', 'ZombieAttack',
+                '--app-version', project.version,
+                '--vendor', 'ZombieAttack Team',
+                '--dest', layout.buildDirectory.dir('jpackage').get().asFile.absolutePath,
+                '--java-options', '-Xmx1G',
+                '--java-options', '-Dfile.encoding=UTF-8'
+        ]
+        def icon = layout.buildDirectory.file('icon.ico').get().asFile
+        if (os.isWindows() && icon.exists()) {
+            args += ['--icon', icon.absolutePath]
+        }
+        commandLine(args)
+    }
+}
+
+// ============================================================
+//  packageInstaller — ОПЦИОНАЛЬНО: установщик .exe/.msi (нужен WiX 3)
+// ============================================================
+tasks.register('packageInstaller', Exec) {
+    group = 'build'
+    description = 'Собирает установщик (требуется WiX 3 в PATH, только Windows).'
+    dependsOn 'installDist', 'generateIcon'
+    onlyIf { org.gradle.internal.os.OperatingSystem.current().isWindows() }
+
+    doFirst {
+        def libDir = layout.buildDirectory.dir("install/${rootProject.name}/lib").get().asFile
+        def mainJar = libDir.listFiles()?.find { it.name.startsWith(rootProject.name) && it.name.endsWith('.jar') }
+        if (mainJar == null) throw new GradleException('Главный jar не найден — сначала выполните installDist')
+        commandLine([
+                'jpackage',
+                '--type', 'exe',
+                '--input', libDir.absolutePath,
+                '--main-jar', mainJar.name,
+                '--name', 'ZombieAttack',
+                '--app-version', project.version,
+                '--vendor', 'ZombieAttack Team',
+                '--dest', layout.buildDirectory.dir('jpackage-installer').get().asFile.absolutePath,
+                '--icon', layout.buildDirectory.file('icon.ico').get().asFile.absolutePath
+        ])
+    }
+}
+
+// ============================================================
+//  packageDist — копирует готовое приложение в dist/
+// ============================================================
+tasks.register('packageDist', Copy) {
+    group = 'build'
+    description = 'Копирует результат jpackage в dist/ZombieAttack.'
+    dependsOn 'packageExe'
+    from layout.buildDirectory.dir('jpackage/ZombieAttack')
+    into layout.projectDirectory.dir('dist/ZombieAttack')
+    doLast {
+        println ''
+        println '============================================================'
+        def os = org.gradle.internal.os.OperatingSystem.current()
+        if (os.isWindows()) {
+            println ' Готово! dist\\ZombieAttack\\ZombieAttack.exe'
+        } else if (os.isMacOsX()) {
+            println ' Готово! dist/ZombieAttack/ZombieAttack.app'
+        } else {
+            println ' Готово! dist/ZombieAttack/bin/ZombieAttack'
+        }
+        println '============================================================'
+    }
+}

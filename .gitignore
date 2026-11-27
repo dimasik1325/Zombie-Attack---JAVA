@@ -1,0 +1,18 @@
+# Артефакты сборки
+.gradle/
+build/
+dist/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Логи
+*.log
+
+# Сгенерированные в рантайме ресурсы игры (~/.zombieattack) сюда не попадают — они в домашней папке пользователя
