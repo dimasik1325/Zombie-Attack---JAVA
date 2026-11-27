@@ -31,7 +31,7 @@ jobs:
       - name: Gradle build + test
         id: build
         continue-on-error: true
-        run: ./gradlew clean build --no-daemon --console=plain 2>&1 | tee build-log.txt
+        run: ./gradlew clean build --no-daemon --console=plain > build-log.txt 2>&1; T=$?; tail -40 build-log.txt; exit $T
       - name: Лог сборки — комментарием к коммиту
         if: steps.build.outcome == 'failure'
         env:
@@ -62,7 +62,7 @@ jobs:
         id: pkg
         continue-on-error: true
         shell: bash
-        run: ./gradlew packageDist --no-daemon --console=plain 2>&1 | tee pkg-log.txt
+        run: ./gradlew packageDist --no-daemon --console=plain > pkg-log.txt 2>&1; T=$?; tail -40 pkg-log.txt; exit $T
       - name: Лог пакета — комментарием к коммиту
         if: steps.pkg.outcome == 'failure'
         env:

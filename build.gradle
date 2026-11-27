@@ -28,11 +28,12 @@ repositories {
 }
 
 dependencies {
-    // jMonkeyEngine 3.6.1 — ядро, десктоп-бэкенд, LWJGL 3 (рендер/ввод/звук) и постэффекты (туман, bloom)
-    implementation 'org.jmonkeyengine:jme3-core:3.6.1'
-    implementation 'org.jmonkeyengine:jme3-desktop:3.6.1'
-    implementation 'org.jmonkeyengine:jme3-lwjgl3:3.6.1'
-    implementation 'org.jmonkeyengine:jme3-effects:3.6.1'
+    // jMonkeyEngine 3.6.1-stable — ядро, десктоп-бэкенд, LWJGL 3 (рендер/ввод/звук) и постэффекты (туман, bloom).
+    // ВНИМАНИЕ: jME публикует в Maven Central версии с суффиксом «-stable»: 3.6.1-stable, а НЕ 3.6.1.
+    implementation 'org.jmonkeyengine:jme3-core:3.6.1-stable'
+    implementation 'org.jmonkeyengine:jme3-desktop:3.6.1-stable'
+    implementation 'org.jmonkeyengine:jme3-lwjgl3:3.6.1-stable'
+    implementation 'org.jmonkeyengine:jme3-effects:3.6.1-stable'
 
     // Тесты (headless: текстуры, звук, физика, волны, оружие)
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
