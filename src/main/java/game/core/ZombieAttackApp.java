@@ -44,11 +44,19 @@ public class ZombieAttackApp extends SimpleApplication {
     }
 
     private void initGame() {
-        // Отключаем встроенный Esc-выход и статистику — управляем всем сами
-        inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
+        // Отключаем встроенный Esc-выход — паузой управляем сами
+        if (inputManager.hasMapping(SimpleApplication.INPUT_MAPPING_EXIT)) {
+            inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
+        }
         setDisplayFps(false);
         setDisplayStatView(false);
-        flyCam.setEnabled(false);
+        // ВАЖНО: flyCam создаётся только при подключённом FlyCamAppState.
+        // Мы передаём в конструктор только StatsAppState, поэтому flyCam == null
+        // (это и была причина падения при запуске). Обзор делает собственный
+        // mouse-look игры, так что камеру-инспектор просто отключаем, если есть.
+        if (flyCam != null) {
+            flyCam.setEnabled(false);
+        }
         setPauseOnLostFocus(false);
 
         viewPort.setBackgroundColor(new ColorRGBA(0.045f, 0.05f, 0.075f, 1f));

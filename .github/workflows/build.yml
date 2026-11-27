@@ -77,6 +77,14 @@ jobs:
           CODE=$?
           echo "Код выхода: $CODE (124 = игра работала и была остановлена по таймауту — успех)"
           if [ "$CODE" = "124" ]; then exit 0; else exit 1; fi
+      - name: В логе игры не должно быть ошибок
+        if: always()
+        run: |
+          if grep -qE "SEVERE|Exception" app-smoke.txt; then
+            echo "=== Обнаружены ошибки в логе игры ==="
+            grep -nE "SEVERE|Exception" app-smoke.txt | head -20
+            exit 1
+          fi
       - name: Стек ошибки — комментарием к коммиту
         if: steps.run.outcome == 'failure'
         env:
