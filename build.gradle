@@ -73,7 +73,7 @@ tasks.register('generateIcon') {
             g.fillRect(0, 0, s, s)
             // зеленоватое свечение
             g.setPaint(new java.awt.RadialGradientPaint(
-                    new java.awt.geom.Point2D.Float(f * 0.5f, f * 0.52f), f * 0.55f,
+                    new java.awt.geom.Point2D.Float((float) (f * 0.5f), (float) (f * 0.52f)), (float) (f * 0.55f),
                     [0.0f, 1.0f] as float[],
                     [new Color(44, 84, 40), new Color(10, 14, 10, 0)] as Color[]))
             g.fillRect(0, 0, s, s)
