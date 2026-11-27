@@ -104,7 +104,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          BAD=$(grep -nE "SEVERE|Exception" app-smoke.txt | grep -viE "openal|audio|AL lib|sound|audioDevice" | head -40)
+          BAD=$(grep -n -A18 -B2 -E "SEVERE|Exception" app-smoke.txt | grep -viE "openal|audio|AL lib|sound|audioDevice" | head -60)
           gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
             -f body="**CI: ошибки в логе игры** (smoke, xvfb):
           \`\`\`
